@@ -1,0 +1,369 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  MEMBER
+  DOCTOR
+  CLINIC_ADMIN
+  SUPER_ADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum SubscriptionTier {
+  STANDARD
+  PREMIUM
+  GLOBAL_TIER
+}
+
+enum MetricType {
+  HEART_RATE
+  SPO2
+  SLEEP
+  ACTIVITY
+  STEPS
+  CALORIES
+  BLOOD_PRESSURE
+  WEIGHT
+}
+
+enum HealthDataSource {
+  WRISTBAND
+  APPLE_HEALTH
+  HEALTH_CONNECT
+  SMART_SCALE
+  THIRD_PARTY_API
+  BLE_DEVICE
+  MANUAL_INPUT
+}
+
+enum SyncStatus {
+  SYNCED
+  PENDING
+  FAILED
+  OFFLINE
+}
+
+enum DeviceCategory {
+  WRISTBAND
+  SMART_WATCH
+  SMART_RING
+  SMART_SCALE
+  OS_PLATFORM
+  BLE_PERIPHERAL
+}
+
+enum ConnectionStatus {
+  CONNECTED
+  DISCONNECTED
+  SYNCING
+  NEEDS_PERMISSION
+}
+
+enum NotificationType {
+  DOCTOR_NOTE
+  TELEMETRY_ALERT
+  GOAL_ACHIEVEMENT
+  DEVICE_SYNC
+  GENERAL
+}
+
+model User {
+  id                    String    @id @default(uuid())
+  email                 String    @unique
+  passwordHash          String
+  firstName             String
+  lastName              String
+  role                  UserRole  @default(MEMBER)
+  isEmailVerified       Boolean   @default(false)
+  emailVerificationCode String?
+  passwordResetToken    String?
+  passwordResetExpires  DateTime?
+  refreshTokenHash      String?
+  profileImageUrl       String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  profile           UserProfile?
+  metrics           HealthMetric[]
+  sleepSummaries    SleepSummary[]
+  dailyActivities   DailyStepActivity[]
+  devices           ConnectedDevice[]
+  doctorProfile     DoctorProfile?
+  patientRelations  PatientDoctorRelation[] @relation("PatientRelation")
+  doctorRelations   PatientDoctorRelation[] @relation("DoctorRelation")
+  patientNotes      DoctorNote[]            @relation("PatientNotes")
+  authoredNotes     DoctorNote[]            @relation("AuthorNotes")
+  consent           ConsentPreference?
+  goals             HealthGoal[]
+  moodLogs          MoodLog[]
+  nutritionTarget   NutritionTarget?
+  foodLogs          FoodLog[]
+  esimPlan          EsimPlan?
+  notifications     Notification[]
+  auditLogs         AuditLog[]
+
+  @@map("users")
+}
+
+model UserProfile {
+  id                    String            @id @default(uuid())
+  userId                String            @unique
+  user                  User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gender                Gender?
+  birthdate             DateTime?
+  heightCm              Float?
+  weightKg              Float?
+  bloodType             String?
+  emergencyContactName  String?
+  emergencyContactPhone String?
+  subscriptionTier      SubscriptionTier  @default(GLOBAL_TIER)
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  @@map("user_profiles")
+}
+
+model HealthMetric {
+  id          String           @id @default(uuid())
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        MetricType
+  value       Float
+  unit        String
+  source      HealthDataSource @default(WRISTBAND)
+  syncStatus  SyncStatus       @default(SYNCED)
+  metadata    Json?
+  recordedAt  DateTime
+  createdAt   DateTime         @default(now())
+
+  @@index([userId, type, recordedAt])
+  @@index([userId, recordedAt])
+  @@map("health_metrics")
+}
+
+model SleepSummary {
+  id                   String           @id @default(uuid())
+  userId               String
+  user                 User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  totalDurationMinutes Int
+  deepMinutes          Int?
+  remMinutes           Int?
+  lightMinutes         Int?
+  awakeMinutes         Int?
+  sleepEfficiencyScore Float            @default(0.0)
+  source               HealthDataSource @default(WRISTBAND)
+  recordedAt           DateTime
+  createdAt            DateTime         @default(now())
+
+  @@index([userId, recordedAt])
+  @@map("sleep_summaries")
+}
+
+model DailyStepActivity {
+  id                   String   @id @default(uuid())
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stepCount            Int      @default(0)
+  stepGoal             Int      @default(10000)
+  activeMinutes        Int      @default(0)
+  activeCaloriesBurned Int      @default(0)
+  distanceKm           Float    @default(0.0)
+  date                 DateTime @db.Date
+  createdAt            DateTime @default(now())
+
+  @@unique([userId, date])
+  @@map("daily_step_activities")
+}
+
+model ConnectedDevice {
+  id              String           @id @default(uuid())
+  userId          String
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  model           String
+  category        DeviceCategory   @default(WRISTBAND)
+  status          ConnectionStatus @default(CONNECTED)
+  batteryPercent  Int?
+  firmwareVersion String?
+  isDefault       Boolean          @default(false)
+  lastSyncedAt    DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@map("connected_devices")
+}
+
+model DoctorProfile {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String
+  clinicName    String
+  licenseNumber String
+  avatarUrl     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("doctor_profiles")
+}
+
+model PatientDoctorRelation {
+  id                  String    @id @default(uuid())
+  patientId           String
+  patient             User      @relation("PatientRelation", fields: [patientId], references: [id], onDelete: Cascade)
+  doctorId            String
+  doctor              User      @relation("DoctorRelation", fields: [doctorId], references: [id], onDelete: Cascade)
+  isTelemetryActive   Boolean   @default(true)
+  nextScheduledReview DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@unique([patientId, doctorId])
+  @@map("patient_doctor_relations")
+}
+
+model DoctorNote {
+  id              String   @id @default(uuid())
+  patientId       String
+  patient         User     @relation("PatientNotes", fields: [patientId], references: [id], onDelete: Cascade)
+  doctorId        String
+  doctor          User     @relation("AuthorNotes", fields: [doctorId], references: [id], onDelete: Cascade)
+  doctorName      String
+  category        String
+  noteText        String
+  recommendations String[]
+  date            DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("doctor_notes")
+}
+
+model ConsentPreference {
+  id                      String   @id @default(uuid())
+  userId                  String   @unique
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  continuousWearableStream Boolean  @default(true)
+  bloodBiomarkers         Boolean  @default(true)
+  mentalWellness          Boolean  @default(false)
+  doctorElectronicAccess  Boolean  @default(true)
+  aiAdvisorProcessing     Boolean  @default(true)
+  researchAlliance        Boolean  @default(false)
+  updatedAt               DateTime @updatedAt
+
+  @@map("consent_preferences")
+}
+
+model HealthGoal {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  target      String
+  current     String
+  progress    Float    @default(0.0)
+  iconName    String?
+  setBy       String   @default("Personal Goal")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("health_goals")
+}
+
+model MoodLog {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  moodLabel       String
+  emoji           String
+  reflectionNotes String?
+  loggedAt        DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  @@map("mood_logs")
+}
+
+model NutritionTarget {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dailyCaloriesKcal Int      @default(2200)
+  proteinGrams      Int      @default(140)
+  carbsGrams        Int      @default(210)
+  fatsGrams         Int      @default(65)
+  updatedAt         DateTime @updatedAt
+
+  @@map("nutrition_targets")
+}
+
+model FoodLog {
+  id                 String   @id @default(uuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  foodName           String
+  portionDescription String?
+  portionGrams       Float?
+  calories           Int
+  proteinGrams       Float
+  carbsGrams         Float
+  fatsGrams          Float
+  confidenceScore    Float    @default(0.90)
+  loggedAt           DateTime @default(now())
+  createdAt          DateTime @default(now())
+
+  @@map("food_logs")
+}
+
+model EsimPlan {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planName    String   @default("United Union Global Health eSIM")
+  isActivated Boolean  @default(true)
+  dataUsedGb  Float    @default(1.4)
+  dataTotalGb Float    @default(5.0)
+  iccid       String?
+  status      String   @default("Active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("esim_plans")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  type      NotificationType @default(GENERAL)
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@map("notifications")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  actorId   String
+  actor     User     @relation(fields: [actorId], references: [id])
+  action    String
+  resource  String
+  details   Json?
+  timestamp DateTime @default(now())
+
+  @@map("audit_logs")
+}
