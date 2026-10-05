@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateDoctorNoteDto } from './dto/create-doctor-note.dto';
-import { UpdateConsentDto } from './dto/update-consent.dto';
+import { UpdateConsentDto } from '../user/dto/update-consent.dto';
 import { RelationStatus, UserRole } from '@prisma/client';
 
 @Injectable()
