@@ -1,5 +1,9 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { MentalWellnessService } from './mental-wellness.service';
 import { CreateMoodLogDto } from './dto/create-mood-log.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -28,7 +32,9 @@ export class MentalWellnessController {
   }
 
   @Get('sessions')
-  @ApiOperation({ summary: 'List guided mindfulness, breathwork, and NSDR sessions' })
+  @ApiOperation({
+    summary: 'List guided mindfulness, breathwork, and NSDR sessions',
+  })
   async getSessions() {
     return this.mentalWellnessService.getSessions();
   }

@@ -1,5 +1,17 @@
-import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { DevicesService } from './devices.service';
 import { RegisterDeviceDto } from './dto/register-device.dto';
 import { SyncDeviceDto } from './dto/sync-device.dto';
@@ -14,13 +26,17 @@ export class DevicesController {
   constructor(private readonly devicesService: DevicesService) {}
 
   @Get()
-  @ApiOperation({ summary: 'List all paired devices and sensors for current user' })
+  @ApiOperation({
+    summary: 'List all paired devices and sensors for current user',
+  })
   async getDevices(@CurrentUser('id') userId: string) {
     return this.devicesService.getUserDevices(userId);
   }
 
   @Post('register')
-  @ApiOperation({ summary: 'Register and bind a new BLE device or platform source' })
+  @ApiOperation({
+    summary: 'Register and bind a new BLE device or platform source',
+  })
   async registerDevice(
     @CurrentUser('id') userId: string,
     @Body() dto: RegisterDeviceDto,
@@ -29,7 +45,9 @@ export class DevicesController {
   }
 
   @Post('sync')
-  @ApiOperation({ summary: 'Update device synchronization timestamp and status' })
+  @ApiOperation({
+    summary: 'Update device synchronization timestamp and status',
+  })
   async syncDevice(
     @CurrentUser('id') userId: string,
     @Body() dto: SyncDeviceDto,

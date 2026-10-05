@@ -32,8 +32,8 @@ Default connection string:
 ```env
 PORT=3000
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/ehealth_db?schema=public"
-JWT_SECRET="united_union_ehealth_jwt_super_secret_key_2026"
-JWT_REFRESH_SECRET="united_union_ehealth_jwt_refresh_secret_key_2026"
+JWT_SECRET="generate-a-long-random-secret"
+JWT_REFRESH_SECRET="generate-a-different-long-random-secret"
 API_PREFIX="v1"
 ```
 

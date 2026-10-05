@@ -14,6 +14,12 @@ enum UserRole {
   SUPER_ADMIN
 }
 
+enum RelationStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+}
+
 enum Gender {
   MALE
   FEMALE
@@ -113,6 +119,9 @@ model User {
   esimPlan          EsimPlan?
   notifications     Notification[]
   auditLogs         AuditLog[]
+  patientReports    ClinicalReport[] @relation("PatientReports")
+  doctorReports     ClinicalReport[] @relation("DoctorReports")
+  aiInteractions    AiInteraction[]
 
   @@map("users")
 }
@@ -206,29 +215,33 @@ model ConnectedDevice {
 }
 
 model DoctorProfile {
-  id            String   @id @default(uuid())
-  userId        String   @unique
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title         String
-  clinicName    String
-  licenseNumber String
-  avatarUrl     String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title          String
+  clinicName     String
+  licenseNumber  String
+  avatarUrl      String?
+  specialty      String?
+  bio            String?
+  invitationCode String?  @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@map("doctor_profiles")
 }
 
 model PatientDoctorRelation {
-  id                  String    @id @default(uuid())
+  id                  String         @id @default(uuid())
   patientId           String
-  patient             User      @relation("PatientRelation", fields: [patientId], references: [id], onDelete: Cascade)
+  patient             User           @relation("PatientRelation", fields: [patientId], references: [id], onDelete: Cascade)
   doctorId            String
-  doctor              User      @relation("DoctorRelation", fields: [doctorId], references: [id], onDelete: Cascade)
-  isTelemetryActive   Boolean   @default(true)
+  doctor              User           @relation("DoctorRelation", fields: [doctorId], references: [id], onDelete: Cascade)
+  status              RelationStatus @default(PENDING)
+  isTelemetryActive   Boolean        @default(true)
   nextScheduledReview DateTime?
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
 
   @@unique([patientId, doctorId])
   @@map("patient_doctor_relations")
@@ -304,6 +317,7 @@ model NutritionTarget {
   proteinGrams      Int      @default(140)
   carbsGrams        Int      @default(210)
   fatsGrams         Int      @default(65)
+  waterMl           Int      @default(2500)
   updatedAt         DateTime @updatedAt
 
   @@map("nutrition_targets")
@@ -320,11 +334,36 @@ model FoodLog {
   proteinGrams       Float
   carbsGrams         Float
   fatsGrams          Float
-  confidenceScore    Float    @default(0.90)
+  waterMl            Float    @default(0)
+  mealType           String   @default("MEAL")
+  barcode            String?
+  confidenceScore    Float?
   loggedAt           DateTime @default(now())
   createdAt          DateTime @default(now())
 
   @@map("food_logs")
+}
+
+model FoodNutritionCache {
+  id           String   @id @default(uuid())
+  foodKey      String   @unique
+  displayName  String
+  datasetClass String   @default("Food-101")
+  imageUrl     String?
+  calories     Int
+  proteinGrams Float
+  carbsGrams   Float
+  fatsGrams    Float
+  servingSize  String   @default("1 standard portion (240g)")
+  portionGrams Float    @default(240)
+  waterMl      Float    @default(140)
+  source       String   @default("Open Food Facts + USDA")
+  ingredients  Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([foodKey])
+  @@map("food_nutrition_cache")
 }
 
 model EsimPlan {
@@ -332,7 +371,7 @@ model EsimPlan {
   userId      String   @unique
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   planName    String   @default("United Union Global Health eSIM")
-  isActivated Boolean  @default(true)
+  isActivated Boolean  @default(false)
   dataUsedGb  Float    @default(1.4)
   dataTotalGb Float    @default(5.0)
   iccid       String?
@@ -366,4 +405,40 @@ model AuditLog {
   timestamp DateTime @default(now())
 
   @@map("audit_logs")
+}
+
+model ClinicalReport {
+  id              String   @id @default(uuid())
+  patientId       String
+  patient         User     @relation("PatientReports", fields: [patientId], references: [id], onDelete: Cascade)
+  doctorId        String
+  doctor          User     @relation("DoctorReports", fields: [doctorId], references: [id], onDelete: Cascade)
+  title           String
+  date            DateTime @default(now())
+  type            String   @default("GENERAL")
+  status          String   @default("NORMAL")
+  metricsIncluded String[]
+  reviewedBy      String
+  fileUrl         String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("clinical_reports")
+}
+
+model AiInteraction {
+  id                   String   @id @default(uuid())
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt               String
+  response             String
+  model                String?
+  provider             String?
+  latencyMs            Int?
+  hasEmergencyFlag     Boolean  @default(false)
+  hasDiagnosticRefusal Boolean  @default(false)
+  createdAt            DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@map("ai_interactions")
 }

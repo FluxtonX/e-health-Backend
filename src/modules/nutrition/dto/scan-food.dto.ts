@@ -2,10 +2,29 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class ScanFoodDto {
-  @ApiProperty({ example: 'data:image/jpeg;base64,...', description: 'Base64 image or image URL' })
+  @ApiPropertyOptional({
+    example: 'data:image/jpeg;base64,...',
+    description: 'Base64 image or image URL from camera or gallery',
+  })
   @IsString()
-  @IsNotEmpty()
-  imageBase64: string;
+  @IsOptional()
+  imageBase64?: string;
+
+  @ApiPropertyOptional({
+    example: 'Chicken Curry',
+    description: 'Direct food query or manual correction string',
+  })
+  @IsString()
+  @IsOptional()
+  foodQuery?: string;
+
+  @ApiPropertyOptional({
+    example: '9300652009491',
+    description: 'Scanned EAN/UPC barcode for OpenFoodFacts lookup',
+  })
+  @IsString()
+  @IsOptional()
+  barcode?: string;
 
   @ApiPropertyOptional({ example: 'lunch' })
   @IsString()
@@ -44,6 +63,30 @@ export class LogMealDto {
   @ApiProperty({ example: 8 })
   @IsNumber()
   fatsGrams: number;
+
+  @ApiPropertyOptional({
+    example: 0,
+    description: 'Water in ml associated with meal',
+  })
+  @IsNumber()
+  @IsOptional()
+  waterMl?: number;
+
+  @ApiPropertyOptional({
+    example: 'LUNCH',
+    description: 'Meal category (BREAKFAST, LUNCH, DINNER, SNACK)',
+  })
+  @IsString()
+  @IsOptional()
+  mealType?: string;
+
+  @ApiPropertyOptional({
+    example: '9300633852109',
+    description: 'Scanned EAN/UPC barcode',
+  })
+  @IsString()
+  @IsOptional()
+  barcode?: string;
 
   @ApiPropertyOptional({ example: 0.94 })
   @IsNumber()

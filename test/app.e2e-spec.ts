@@ -1,12 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
-import { AppModule } from './../src/app.module';
+import { AppModule } from '../src/app.module';
 
 describe('United Union Health API (e2e)', () => {
   let app: INestApplication;
   let accessToken: string;
-  let userId: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -40,12 +39,14 @@ describe('United Union Health API (e2e)', () => {
 
       expect(response.body).toHaveProperty('accessToken');
       expect(response.body).toHaveProperty('refreshToken');
-      expect(response.body.user).toHaveProperty('email', 'member@unitedunionhealth.com');
+      expect(response.body.user).toHaveProperty(
+        'email',
+        'member@unitedunionhealth.com',
+      );
       expect(response.body.user).toHaveProperty('firstName', 'Elena');
       expect(response.body.user).toHaveProperty('lastName', 'Vance');
 
       accessToken = response.body.accessToken;
-      userId = response.body.user.id;
     });
 
     it('POST /v1/auth/login - should reject invalid credentials', async () => {
@@ -128,7 +129,9 @@ describe('United Union Health API (e2e)', () => {
 
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThanOrEqual(1);
-      const wristband = response.body.find((d: any) => d.model === 'UU-WB2-PRO');
+      const wristband = response.body.find(
+        (d: any) => d.model === 'UU-WB2-PRO',
+      );
       expect(wristband).toBeDefined();
       expect(wristband.isDefault).toBe(true);
     });
@@ -142,7 +145,9 @@ describe('United Union Health API (e2e)', () => {
         .expect(200);
 
       expect(response.body.name).toContain('Dr. Sarah Jenkins');
-      expect(response.body.clinicName).toContain('United Union Health Care Alliance');
+      expect(response.body.clinicName).toContain(
+        'United Union Health Care Alliance',
+      );
       expect(response.body.isTelemetryActive).toBe(true);
     });
 

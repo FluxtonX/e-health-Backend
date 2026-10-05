@@ -1,5 +1,17 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -19,7 +31,10 @@ export class AuthController {
   @Public()
   @Post('register')
   @ApiOperation({ summary: 'Register a new member account' })
-  @ApiResponse({ status: 201, description: 'User successfully created and authenticated' })
+  @ApiResponse({
+    status: 201,
+    description: 'User successfully created and authenticated',
+  })
   async register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
@@ -28,7 +43,10 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Sign in with email and password' })
-  @ApiResponse({ status: 200, description: 'Successfully authenticated, returns JWT tokens' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully authenticated, returns JWT tokens',
+  })
   async login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
   }
@@ -61,7 +79,9 @@ export class AuthController {
   @Public()
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Reset member password using verification code/token' })
+  @ApiOperation({
+    summary: 'Reset member password using verification code/token',
+  })
   @ApiResponse({ status: 200, description: 'Password reset successfully' })
   async resetPassword(@Body() dto: ResetPasswordDto) {
     return this.authService.resetPassword(dto);
@@ -72,7 +92,10 @@ export class AuthController {
   @Post('verify-email')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Confirm member email with verification code' })
-  async verifyEmail(@CurrentUser('id') userId: string, @Body() dto: VerifyEmailDto) {
+  async verifyEmail(
+    @CurrentUser('id') userId: string,
+    @Body() dto: VerifyEmailDto,
+  ) {
     return this.authService.verifyEmail(userId, dto.code);
   }
 
@@ -80,7 +103,9 @@ export class AuthController {
   @ApiBearerAuth()
   @Post('resend-verification-email')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Resend email verification code to currently logged in member' })
+  @ApiOperation({
+    summary: 'Resend email verification code to currently logged in member',
+  })
   async resendVerificationEmail(@CurrentUser('id') userId: string) {
     return this.authService.resendVerificationEmail(userId);
   }
@@ -88,7 +113,10 @@ export class AuthController {
   @Public()
   @Post('resend-code')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Resend verification code by email address for unauthenticated flows' })
+  @ApiOperation({
+    summary:
+      'Resend verification code by email address for unauthenticated flows',
+  })
   async resendCodeByEmail(@Body() dto: ForgotPasswordDto) {
     return this.authService.resendCodeByEmail(dto.email);
   }

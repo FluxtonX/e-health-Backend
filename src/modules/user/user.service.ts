@@ -32,7 +32,8 @@ export class UserService {
     return {
       ...user,
       fullName: `${user.firstName} ${user.lastName}`,
-      initials: `${user.firstName[0] || ''}${user.lastName[0] || ''}`.toUpperCase(),
+      initials:
+        `${user.firstName[0] || ''}${user.lastName[0] || ''}`.toUpperCase(),
     };
   }
 
@@ -82,5 +83,36 @@ export class UserService {
     });
 
     return this.getProfile(userId);
+  }
+
+  async getConsent(userId: string) {
+    const consent = await this.prisma.consentPreference.findUnique({
+      where: { userId },
+    });
+    return (
+      consent || {
+        continuousWearableStream: true,
+        bloodBiomarkers: true,
+        mentalWellness: false,
+        doctorElectronicAccess: true,
+        aiAdvisorProcessing: true,
+        researchAlliance: false,
+      }
+    );
+  }
+
+  async updateConsent(userId: string, dto: any) {
+    const consent = await this.prisma.consentPreference.upsert({
+      where: { userId },
+      create: {
+        userId,
+        ...dto,
+      },
+      update: {
+        ...dto,
+      },
+    });
+
+    return consent;
   }
 }

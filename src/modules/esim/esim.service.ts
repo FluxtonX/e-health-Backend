@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -6,6 +6,13 @@ export class EsimService {
   constructor(private prisma: PrismaService) {}
 
   async getStatus(userId: string) {
+    if (process.env.ESIM_PROVIDER_ENABLED !== 'true') {
+      return {
+        available: false,
+        status: 'UNAVAILABLE',
+        reason: 'PROVIDER_NOT_CONFIGURED',
+      };
+    }
     const plan = await this.prisma.esimPlan.findUnique({
       where: { userId },
     });
@@ -34,6 +41,9 @@ export class EsimService {
   }
 
   async activateEsim(userId: string) {
+    if (process.env.ESIM_PROVIDER_ENABLED !== 'true') {
+      throw new ServiceUnavailableException('ESIM_PROVIDER_NOT_CONFIGURED');
+    }
     const plan = await this.prisma.esimPlan.upsert({
       where: { userId },
       create: {

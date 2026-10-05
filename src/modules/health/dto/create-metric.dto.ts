@@ -1,6 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { HealthDataSource, MetricType, SyncStatus } from '@prisma/client';
-import { IsDateString, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsDateString,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreateMetricDto {
   @ApiProperty({ enum: MetricType, example: MetricType.HEART_RATE })
@@ -15,7 +21,10 @@ export class CreateMetricDto {
   @IsString()
   unit: string;
 
-  @ApiPropertyOptional({ enum: HealthDataSource, default: HealthDataSource.WRISTBAND })
+  @ApiPropertyOptional({
+    enum: HealthDataSource,
+    default: HealthDataSource.WRISTBAND,
+  })
   @IsEnum(HealthDataSource)
   @IsOptional()
   source?: HealthDataSource;

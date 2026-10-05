@@ -33,7 +33,8 @@ export class MentalWellnessService {
         title: 'Parasympathetic Downregulation',
         durationMinutes: 10,
         category: 'BREATHWORK',
-        description: 'Box breathing (4-4-4-4) to lower resting sympathetic tone and stabilize heart rate.',
+        description:
+          'Box breathing (4-4-4-4) to lower resting sympathetic tone and stabilize heart rate.',
         instructor: 'Dr. Elena Rossi, PhD',
         audioUrl: 'https://unitedunionhealth.com/audio/box-breathing.mp3',
       },
@@ -42,7 +43,8 @@ export class MentalWellnessService {
         title: 'Deep Rest Non-Sleep Restoration (NSDR)',
         durationMinutes: 20,
         category: 'MEDITATION',
-        description: 'Guided body scan to promote cellular recovery and support sleep staging.',
+        description:
+          'Guided body scan to promote cellular recovery and support sleep staging.',
         instructor: 'Marcus Vance, Mindfulness Lead',
         audioUrl: 'https://unitedunionhealth.com/audio/nsdr-deep-rest.mp3',
       },
@@ -51,9 +53,11 @@ export class MentalWellnessService {
         title: 'Pre-Sleep Cognitive Unburdening',
         durationMinutes: 15,
         category: 'JOURNALING',
-        description: 'Clear active cognitive load before your evening sleep window.',
+        description:
+          'Clear active cognitive load before your evening sleep window.',
         instructor: 'Clinical Wellness Alliance',
-        audioUrl: 'https://unitedunionhealth.com/audio/cognitive-unburdening.mp3',
+        audioUrl:
+          'https://unitedunionhealth.com/audio/cognitive-unburdening.mp3',
       },
     ];
   }

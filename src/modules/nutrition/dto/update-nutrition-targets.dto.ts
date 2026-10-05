@@ -21,4 +21,12 @@ export class UpdateNutritionTargetsDto {
   @IsNumber()
   @IsOptional()
   fatsGrams?: number;
+
+  @ApiPropertyOptional({
+    example: 2500,
+    description: 'Daily water target in ml',
+  })
+  @IsNumber()
+  @IsOptional()
+  waterMl?: number;
 }

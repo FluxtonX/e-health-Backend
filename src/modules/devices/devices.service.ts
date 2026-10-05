@@ -9,10 +9,40 @@ export class DevicesService {
   constructor(private prisma: PrismaService) {}
 
   async getUserDevices(userId: string) {
-    return this.prisma.connectedDevice.findMany({
+    const devices = await this.prisma.connectedDevice.findMany({
       where: { userId },
-      orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }],
+      orderBy: [
+        { isDefault: 'desc' },
+        { lastSyncedAt: 'desc' },
+        { createdAt: 'desc' },
+      ],
     });
+
+    // Deduplicate devices by model & name (keeps the most recently synced record)
+    const seen = new Set<string>();
+    const uniqueDevices: typeof devices = [];
+    const duplicateIdsToDelete: string[] = [];
+
+    for (const d of devices) {
+      const key = `${d.category}_${d.model}`;
+      if (seen.has(key)) {
+        duplicateIdsToDelete.push(d.id);
+      } else {
+        seen.add(key);
+        uniqueDevices.push(d);
+      }
+    }
+
+    if (duplicateIdsToDelete.length > 0) {
+      // Clean up orphaned duplicates in the background
+      this.prisma.connectedDevice
+        .deleteMany({
+          where: { id: { in: duplicateIdsToDelete } },
+        })
+        .catch(() => {});
+    }
+
+    return uniqueDevices;
   }
 
   async registerDevice(userId: string, dto: RegisterDeviceDto) {
@@ -20,6 +50,28 @@ export class DevicesService {
       await this.prisma.connectedDevice.updateMany({
         where: { userId },
         data: { isDefault: false },
+      });
+    }
+
+    // Check if device with this model or name already exists for this user
+    const existing = await this.prisma.connectedDevice.findFirst({
+      where: {
+        userId,
+        OR: [{ model: dto.model }, { name: dto.name }],
+      },
+    });
+
+    if (existing) {
+      return this.prisma.connectedDevice.update({
+        where: { id: existing.id },
+        data: {
+          name: dto.name,
+          category: dto.category,
+          batteryPercent: dto.batteryPercent ?? existing.batteryPercent,
+          firmwareVersion: dto.firmwareVersion ?? existing.firmwareVersion,
+          status: ConnectionStatus.CONNECTED,
+          lastSyncedAt: new Date(),
+        },
       });
     }
 
@@ -43,7 +95,9 @@ export class DevicesService {
       where: { id: dto.deviceId, userId },
     });
     if (!device) {
-      throw new NotFoundException('Device not found or not paired with this user');
+      throw new NotFoundException(
+        'Device not found or not paired with this user',
+      );
     }
 
     return this.prisma.connectedDevice.update({

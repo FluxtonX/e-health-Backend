@@ -12,7 +12,9 @@ export class CreateMoodLogDto {
   @IsNotEmpty()
   emoji: string;
 
-  @ApiPropertyOptional({ example: 'Completed zone 2 walk and feel clear headed.' })
+  @ApiPropertyOptional({
+    example: 'Completed zone 2 walk and feel clear headed.',
+  })
   @IsString()
   @IsOptional()
   reflectionNotes?: string;

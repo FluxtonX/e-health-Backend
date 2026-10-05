@@ -1,5 +1,9 @@
 import { Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -12,7 +16,9 @@ export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get recent clinical, goal, and telemetry notifications' })
+  @ApiOperation({
+    summary: 'Get recent clinical, goal, and telemetry notifications',
+  })
   async getNotifications(@CurrentUser('id') userId: string) {
     return this.notificationsService.getNotifications(userId);
   }

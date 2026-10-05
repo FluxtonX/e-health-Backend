@@ -13,9 +13,18 @@ import { NutritionModule } from './modules/nutrition/nutrition.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { EsimModule } from './modules/esim/esim.module';
 import { MailModule } from './modules/mail/mail.module';
+import { TerraModule } from './modules/integrations/terra/terra.module';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 100,
+      },
+    ]),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
@@ -33,6 +42,13 @@ import { MailModule } from './modules/mail/mail.module';
     NotificationsModule,
     EsimModule,
     MailModule,
+    TerraModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}

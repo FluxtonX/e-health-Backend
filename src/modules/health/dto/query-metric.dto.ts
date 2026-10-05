@@ -17,4 +17,8 @@ export class QueryMetricDto {
   @IsDateString()
   @IsOptional()
   endDate?: string;
+
+  @ApiPropertyOptional({ example: 7 })
+  @IsOptional()
+  days?: number;
 }

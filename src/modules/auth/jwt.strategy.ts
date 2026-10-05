@@ -19,7 +19,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('JWT_SECRET') || 'united_union_ehealth_jwt_super_secret_key_2026',
+      secretOrKey:
+        configService.get<string>('JWT_SECRET')?.trim() ||
+        (process.env.NODE_ENV === 'test' ? 'test-only-JWT_SECRET' : (() => { throw new Error('JWT_SECRET must be configured'); })()),
     });
   }
 
@@ -38,7 +40,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
 
     if (!user) {
-      throw new UnauthorizedException('User session is invalid or user has been removed');
+      throw new UnauthorizedException(
+        'User session is invalid or user has been removed',
+      );
     }
 
     return user;

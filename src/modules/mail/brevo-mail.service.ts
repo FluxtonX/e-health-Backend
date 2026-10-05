@@ -27,7 +27,10 @@ export class BrevoMailService {
     otpCode: string,
   ): Promise<boolean> {
     const subject = `Your UUHealth Verification Code: ${otpCode}`;
-    const htmlContent = this.buildVerificationEmailTemplate(recipientName, otpCode);
+    const htmlContent = this.buildVerificationEmailTemplate(
+      recipientName,
+      otpCode,
+    );
     const textContent = `Hello ${recipientName || 'Member'},\n\nYour United Union Health verification code is: ${otpCode}\n\nThis code will expire in 15 minutes. If you did not create an account, please disregard this email.\n\nUnited Union Health`;
 
     return this.sendTransactionalEmail({
@@ -49,7 +52,10 @@ export class BrevoMailService {
     otpCode: string,
   ): Promise<boolean> {
     const subject = `Reset Your UUHealth Password - Code: ${otpCode}`;
-    const htmlContent = this.buildPasswordResetEmailTemplate(recipientName, otpCode);
+    const htmlContent = this.buildPasswordResetEmailTemplate(
+      recipientName,
+      otpCode,
+    );
     const textContent = `Hello ${recipientName || 'Member'},\n\nWe received a request to reset your United Union Health password.\n\nYour 6-digit password reset code is: ${otpCode}\n\nThis code will expire in 60 minutes. If you did not request a password reset, your account is safe and you can ignore this message.\n\nUnited Union Health`;
 
     return this.sendTransactionalEmail({
@@ -65,7 +71,9 @@ export class BrevoMailService {
   /**
    * Dispatch transactional email via Brevo REST API, Brevo SMTP Relay, or dev console fallback.
    */
-  private async sendTransactionalEmail(options: SendEmailOptions): Promise<boolean> {
+  private async sendTransactionalEmail(
+    options: SendEmailOptions,
+  ): Promise<boolean> {
     const apiKey = this.configService.get<string>('BREVO_API_KEY')?.trim();
     const senderEmail =
       this.configService.get<string>('BREVO_SENDER_EMAIL')?.trim() ||
@@ -243,7 +251,10 @@ export class BrevoMailService {
   /**
    * Premium UUHealth Email Verification HTML Template
    */
-  private buildVerificationEmailTemplate(name: string, otpCode: string): string {
+  private buildVerificationEmailTemplate(
+    name: string,
+    otpCode: string,
+  ): string {
     const greetingName = name ? ` ${name}` : '';
     return `
 <!DOCTYPE html>
@@ -301,7 +312,10 @@ export class BrevoMailService {
   /**
    * Premium UUHealth Password Reset HTML Template
    */
-  private buildPasswordResetEmailTemplate(name: string, otpCode: string): string {
+  private buildPasswordResetEmailTemplate(
+    name: string,
+    otpCode: string,
+  ): string {
     const greetingName = name ? ` ${name}` : '';
     return `
 <!DOCTYPE html>

@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { BrevoMailService } from '../mail/brevo-mail.service';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -32,6 +33,13 @@ describe('AuthService', () => {
           provide: ConfigService,
           useValue: {
             get: jest.fn().mockReturnValue('mock_secret'),
+          },
+        },
+        {
+          provide: BrevoMailService,
+          useValue: {
+            sendVerificationEmail: jest.fn().mockResolvedValue(true),
+            sendPasswordResetEmail: jest.fn().mockResolvedValue(true),
           },
         },
       ],

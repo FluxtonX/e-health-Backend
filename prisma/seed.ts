@@ -15,6 +15,7 @@ async function main() {
   await prisma.healthGoal.deleteMany();
   await prisma.consentPreference.deleteMany();
   await prisma.doctorNote.deleteMany();
+  await prisma.clinicalReport.deleteMany();
   await prisma.patientDoctorRelation.deleteMany();
   await prisma.doctorProfile.deleteMany();
   await prisma.connectedDevice.deleteMany();
@@ -114,6 +115,32 @@ async function main() {
           'Perform initial walk test for baseline aerobic fitness score',
         ],
         date: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
+      },
+    ],
+  });
+
+  // 4.5 Create Clinical Reports
+  await prisma.clinicalReport.createMany({
+    data: [
+      {
+        patientId: elena.id,
+        doctorId: drJenkins.id,
+        title: 'Comprehensive Cardiovascular Review Q3',
+        type: 'CARDIAC_ASSESSMENT',
+        status: 'NORMAL',
+        metricsIncluded: ['Heart Rate Variability', 'Resting HR', 'SpO2 Overnight'],
+        reviewedBy: 'Dr. Sarah Jenkins, MD',
+        date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+      },
+      {
+        patientId: elena.id,
+        doctorId: drJenkins.id,
+        title: 'Sleep Architecture & Efficiency Baseline',
+        type: 'SLEEP_STUDY',
+        status: 'NORMAL',
+        metricsIncluded: ['Sleep Stages', 'Efficiency Score', 'Respiratory Rate'],
+        reviewedBy: 'Dr. Sarah Jenkins, MD',
+        date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
       },
     ],
   });

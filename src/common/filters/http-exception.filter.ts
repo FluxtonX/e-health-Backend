@@ -37,7 +37,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
       message = (exceptionResponse as any).message;
     } else if (exception instanceof Error) {
       // In development or non-500, provide friendly message, sanitize PHI
-      message = status === HttpStatus.INTERNAL_SERVER_ERROR ? 'An unexpected server error occurred' : exception.message;
+      message =
+        status === HttpStatus.INTERNAL_SERVER_ERROR
+          ? 'An unexpected server error occurred'
+          : exception.message;
     }
 
     // PHI-Safe Logging: never log request body containing health telemetry/passwords
